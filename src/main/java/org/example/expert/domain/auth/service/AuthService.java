@@ -27,13 +27,26 @@ public class AuthService {
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
 
+        // 이메일 유효성 검사 정규표현식
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+        // SignupRequest @NotBlank 가 없다면 예외 처리
+        if(signupRequest.getEmail().isEmpty()) {
+            throw new InvalidRequestException("Email을 입력해 주세요");
+        }
+        // signupRequest @Email 이 없다면 예외 처리
+        if(!signupRequest.getEmail().matches(emailRegex)) {
+            throw new InvalidRequestException("Email 형식이 잘못되었습니다.");
+        }
+        // 이메일 중복 예외 처리
+        if (userRepository.existsByEmail(signupRequest.getEmail())) {
+            throw new InvalidRequestException("이미 존재하는 이메일입니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(signupRequest.getPassword());
 
         UserRole userRole = UserRole.of(signupRequest.getUserRole());
 
-        if (userRepository.existsByEmail(signupRequest.getEmail())) {
-            throw new InvalidRequestException("이미 존재하는 이메일입니다.");
-        }
 
         User newUser = new User(
                 signupRequest.getEmail(),
