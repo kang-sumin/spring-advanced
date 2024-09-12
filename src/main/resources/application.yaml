@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: spring-advanced
+  profiles:
+    active: local
